@@ -112,9 +112,13 @@
 </head>
 <body>
     <div class="main-content">
-        <div class="wheel-container">
-            <canvas id="wheel" width="500" height="500"></canvas>
-            <div class="arrow"></div>
+        <div class="wheel-row" style="display:flex;align-items:center;justify-content:center;width:100vw;">
+            <img src="background.jpg" alt="Decorative Left" class="decorative-img" style="height:340px;width:auto;margin-right:40px;border-radius:30px;box-shadow:0 0 30px #0006;object-fit:cover;">
+            <div class="wheel-container">
+                <canvas id="wheel" width="400" height="400"></canvas>
+                <div class="arrow"></div>
+            </div>
+            <img src="robbie.jpg" alt="Decorative Right" class="decorative-img" style="height:340px;width:auto;margin-left:40px;border-radius:30px;box-shadow:0 0 30px #0006;object-fit:cover;">
         </div>
         <button id="spinBtn">Spin</button>
         <div id="result"></div>

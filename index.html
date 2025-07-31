@@ -27,77 +27,7 @@
             width: 100vw;
             height: 100vh;
         }
-        #wheel {
-            border-radius: 50%;
-            box-shadow: 0 0 20px #aaa;
-            background: #fff;
-        }
-        #spinBtn {
-            margin-top: 30px;
-            padding: 10px 30px;
-            font-size: 1.2em;
-            border-radius: 8px;
-            border: none;
-            background: #3498db;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        #spinBtn:hover {
-            background: #217dbb;
-        }
-        #result {
-            margin-top: 40px;
-            font-size: 5em;
-            font-family: 'Impact', 'Arial Black', Arial, sans-serif;
-            font-weight: bold;
-            letter-spacing: 0.05em;
-            opacity: 0;
-            color: #00aaff;
-            text-shadow: 0 2px 8px #0077cc, 0 0px 20px #00aaff;
-            background: none;
-            -webkit-background-clip: initial;
-            -webkit-text-fill-color: initial;
-            background-clip: initial;
-            transition: opacity 0.7s cubic-bezier(.68,-0.55,.27,1.55), transform 0.7s cubic-bezier(.68,-0.55,.27,1.55);
-        }
-        @keyframes flicker {
-            0% { opacity: 1; }
-            10% { opacity: 0.7; }
-            20% { opacity: 1; }
-            30% { opacity: 0.8; }
-            40% { opacity: 1; }
-            50% { opacity: 0.6; }
-            60% { opacity: 1; }
-            70% { opacity: 0.9; }
-            80% { opacity: 1; }
-            90% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        
-        .arrow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -120px);
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-bottom: 30px solid #e74c3c;
-        }
-        .wheel-container {
-            position: relative;
-            width: 500px;
-            height: 500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #wheel {
-            width: 500px !important;
-            height: 500px !important;
-        }
+        /* ...existing code... */
     </style>
     <style>
     .slide-in-draft {
@@ -112,19 +42,20 @@
 </head>
 <body>
     <div class="main-content">
-        <div class="wheel-row" style="display:flex;align-items:center;justify-content:center;width:100vw;">
-            <img src="background.jpg" alt="Decorative Left" class="decorative-img" style="height:340px;width:auto;margin-right:40px;border-radius:30px;box-shadow:0 0 30px #0006;object-fit:cover;">
-            <div class="wheel-container">
-                <canvas id="wheel" width="400" height="400"></canvas>
-                <div class="arrow"></div>
+        <div class="race-track-container">
+            <div class="race-track" id="race-track">
+                <!-- Ducks will be injected here -->
             </div>
-            <img src="robbie.jpg" alt="Decorative Right" class="decorative-img" style="height:340px;width:auto;margin-left:40px;border-radius:30px;box-shadow:0 0 30px #0006;object-fit:cover;">
         </div>
-        <button id="spinBtn">Spin</button>
-        <div id="result"></div>
-        <div id="winner-img-container"></div>
-        <div id="winner-gif-overlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1050;pointer-events:none;justify-content:center;align-items:center;"></div>
-        <button id="close-winner" style="display:none;position:fixed;top:40px;right:60px;z-index:1100;font-size:3em;background:rgba(0,0,0,0.3);color:#fff;border:none;border-radius:50%;width:60px;height:60px;cursor:pointer;box-shadow:0 0 20px #000;transition:background 0.2s;">&times;</button>
+        <button id="startRaceBtn">Start Duck Race</button>
+        <div id="race-result"></div>
+        <div id="race-popup" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:2000;justify-content:center;align-items:center;">
+            <div style="background:#fff;padding:40px 30px;border-radius:30px;box-shadow:0 0 40px #000a;max-width:700px;width:90vw;">
+                <h2 style="text-align:center;margin-bottom:20px;">Final Draft Order</h2>
+                <div id="final-order-list" style="display:flex;flex-direction:column;gap:18px;"></div>
+                <button id="close-popup" style="margin-top:30px;padding:12px 40px;font-size:1.3em;border-radius:10px;background:#3498db;color:#fff;border:none;cursor:pointer;">Close</button>
+            </div>
+        </div>
         <table id="draft-table" style="margin-top:40px;width:900px;max-width:90vw;border-collapse:separate;border-spacing:20px 0;">
             <tr id="draft-row">
                 <td class="draft-cell"></td>
@@ -141,27 +72,12 @@
         </table>
     </div>
     <script>
-        let slices = 10;
-        const colors = [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-            '#F7464A', '#46BFBD', '#FDB45C', '#949FB1', '#E74C3C'
-        ];
-        let labels = [
+        // Duck race implementation
+        const duckNames = [
             'Aidan', 'Mikey', 'Connor', 'Silva', 'Gavin',
             'Chase', 'Kilby', 'Morris', 'Max', 'Sean'
         ];
-        // Track drafted names and images
-        let drafted = [];
-        const canvas = document.getElementById('wheel');
-        const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinBtn');
-        const resultDiv = document.getElementById('result');
-        const winnerImgContainer = document.getElementById('winner-img-container');
-        let currentAngle = 0;
-        let spinning = false;
-
-        // Map names to image file names (update these paths as needed)
-        const winnerImages = {
+        const duckImages = {
             'Aidan': 'aidan.png',
             'Mikey': 'mikey.png',
             'Connor': 'connor.png',
@@ -173,216 +89,302 @@
             'Max': 'max.png',
             'Sean': 'sean.jpg'
         };
+        let finishedOrder = [];
+        let raceStarted = false;
 
-        // Unique animation classes for each winner
-        const winnerAnimations = {
-            'Aidan': 'explode-in',
-            'Mikey': 'slide-in-left',
-            'Connor': 'spin-in',
-            'Silva': 'bounce-in',
-            'Gavin': 'fade-in',
-            'Chase': 'zoom-in',
-            'Kilby': 'flip-in',
-            'Morris': 'slide-in-right',
-            'Max': 'pop-in',
-            'Sean': 'rotate-in'
-        };
+        function createDuckElement(name, idx) {
+            const duck = document.createElement('div');
+            duck.className = 'duck';
+            duck.style.top = `${30 + idx * 60}px`;
+            duck.style.left = '0px';
+            duck.setAttribute('data-name', name);
+            duck.setAttribute('data-idx', idx);
+            // Duck body: face overlays duck.webp's head
+            duck.innerHTML = `
+                <div class="duck-body">
+                    <img src="duck.webp" alt="Duck" class="duck-img">
+                    <img src="${duckImages[name]}" alt="${name}" class="duck-face">
+                </div>
+                <div class="duck-label">${name}</div>
+            `;
+            return duck;
+        }
 
-        function drawWheel(angle = 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = Math.min(canvas.width, canvas.height) / 2 - 5;
-            const sliceAngle = 2 * Math.PI / slices;
-            for (let i = 0; i < slices; i++) {
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, angle + i * sliceAngle, angle + (i + 1) * sliceAngle);
-                ctx.closePath();
-                ctx.fillStyle = colors[i % colors.length];
-                ctx.fill();
-                // Draw label
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(angle + (i + 0.5) * sliceAngle);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = '#222';
-                ctx.font = 'bold 24px Arial';
-                ctx.fillText(labels[i], radius - 30, 0);
-                ctx.restore();
-                ctx.restore();
+        function startDuckRace() {
+            if (raceStarted) return;
+            raceStarted = true;
+            finishedOrder = [];
+            document.getElementById('race-result').textContent = '';
+            // Clear table
+            document.querySelectorAll('.draft-cell').forEach(cell => cell.innerHTML = '');
+            // Remove previous ducks
+            const track = document.getElementById('race-track');
+            track.innerHTML = '';
+            // Add finish line
+            const finishLine = document.createElement('div');
+            finishLine.className = 'finish-line';
+            track.appendChild(finishLine);
+            // Create ducks
+            const ducks = [];
+            for (let i = 0; i < duckNames.length; i++) {
+                const duck = createDuckElement(duckNames[i], i);
+                track.appendChild(duck);
+                ducks.push(duck);
             }
-        }
-
-        drawWheel(currentAngle);
-
-        const closeWinnerBtn = document.getElementById('close-winner');
-        const winnerGifOverlay = document.getElementById('winner-gif-overlay');
-
-        // List of dramatic GIFs
-        const dramaticGifs = [
-            'explode.gif',
-            'fireworks.gif',
-            'nuke.gif',
-            'nuke2.webp',
-            'starwars.gif'
-        ];
-        function showWinnerImage(name) {
-            winnerImgContainer.innerHTML = '';
-            winnerGifOverlay.innerHTML = '';
-            // Show random dramatic GIF overlay
-            const gif = dramaticGifs[Math.floor(Math.random() * dramaticGifs.length)];
-            winnerGifOverlay.innerHTML = `<img src="${gif}" alt="effect" style="max-width:80vw;max-height:80vh;display:block;position:absolute;z-index:1;">`;
-            winnerGifOverlay.style.display = 'flex';
-            winnerGifOverlay.style.opacity = '1';
-            // Fade out and hide GIF after 2 seconds
-            setTimeout(() => {
-                winnerGifOverlay.style.opacity = '0';
-                setTimeout(() => {
-                    winnerGifOverlay.style.display = 'none';
-                    winnerGifOverlay.innerHTML = '';
-                }, 700);
-            }, 2000);
-            // Create winner image
-            const img = document.createElement('img');
-            img.src = winnerImages[name];
-            img.alt = name;
-            img.className = 'winner-img ' + (winnerAnimations[name] || 'explode-in');
-            // Remove custom positioning so flexbox centers it
-            img.style.position = '';
-            img.style.zIndex = '';
-            img.style.left = '';
-            img.style.top = '';
-            img.style.transform = '';
-            winnerImgContainer.appendChild(img);
-            closeWinnerBtn.style.display = 'block';
-        }
-
-    closeWinnerBtn.addEventListener('click', () => {
-        // Get winner name from resultDiv
-        const winnerText = resultDiv.textContent;
-        const match = winnerText.match(/RESULT: (.+)/);
-        let winnerName = match ? match[1] : null;
-        if (winnerName && labels.includes(winnerName)) {
-            // Find next empty cell left to right
-            const cells = document.querySelectorAll('.draft-cell');
-            for (let i = 0; i < cells.length; i++) {
-                if (!cells[i].hasChildNodes()) {
-                    // Add draft number and name above face
-                    const wrapper = document.createElement('div');
-                    wrapper.style.display = 'flex';
-                    wrapper.style.flexDirection = 'column';
-                    wrapper.style.alignItems = 'center';
-                    // Draft number and name
-                    const label = document.createElement('div');
-                    label.textContent = `${drafted.length + 1}. ${winnerName}`;
-                    label.style.fontWeight = 'bold';
-                    label.style.fontSize = '1.2em';
-                    label.style.marginBottom = '6px';
-                    label.style.textAlign = 'center';
-                    label.style.color = '#222';
-                    wrapper.appendChild(label);
-                    // Winner image
-                    const img = document.createElement('img');
-                    img.src = winnerImages[winnerName];
-                    img.alt = winnerName;
-                    img.className = 'winner-img slide-in-draft';
-                    img.style.width = '100px';
-                    img.style.height = '100px';
-                    img.style.objectFit = 'cover';
-                    img.style.borderRadius = '20px';
-                    img.style.boxShadow = '0 0 20px #000a';
-                    wrapper.appendChild(img);
-                    cells[i].appendChild(wrapper);
-                    break;
+            // Animate ducks
+            const trackWidth = track.offsetWidth - 120;
+            const startTime = performance.now();
+            let finished = 0;
+            let duckFinishTimes = Array(10).fill(0);
+            // Assign each duck a random speed at the start
+            const duckSpeeds = Array.from({length: 10}, () => 0.7 + Math.random() * 0.6);
+            function animateRace(now) {
+                const elapsed = now - startTime;
+                for (let i = 0; i < ducks.length; i++) {
+                    if (duckFinishTimes[i]) continue;
+                    // Use assigned speed for each duck
+                    const speed = duckSpeeds[i];
+                    // Linear progress for each duck
+                    let progress = Math.min(1, (elapsed * speed) / 10000);
+                    ducks[i].style.left = `${progress * trackWidth}px`;
+                    if (progress >= 1 && !duckFinishTimes[i]) {
+                        duckFinishTimes[i] = elapsed;
+                        finished++;
+                        finishedOrder.push({ name: duckNames[i], img: duckImages[duckNames[i]] });
+                        // Update table: only face in cell, name in label above
+                        const cells = document.querySelectorAll('.draft-cell');
+                        const idx = finishedOrder.length - 1;
+                        if (idx < cells.length) {
+                            const wrapper = document.createElement('div');
+                            wrapper.style.display = 'flex';
+                            wrapper.style.flexDirection = 'column';
+                            wrapper.style.alignItems = 'center';
+                            // Draft number and name above
+                            const label = document.createElement('div');
+                            label.textContent = `${idx + 1}. ${duckNames[i]}`;
+                            label.style.fontWeight = 'bold';
+                            label.style.fontSize = '1.2em';
+                            label.style.marginBottom = '6px';
+                            label.style.textAlign = 'center';
+                            label.style.color = '#222';
+                            wrapper.appendChild(label);
+                            // Only face image (not duck) in cell
+                            const img = document.createElement('img');
+                            img.src = duckImages[duckNames[i]];
+                            img.alt = duckNames[i];
+                            img.className = 'winner-img slide-in-draft';
+                            img.style.width = '54px';
+                            img.style.height = '54px';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '50%';
+                            img.style.boxShadow = '0 0 10px #000a';
+                            wrapper.appendChild(img);
+                            cells[idx].appendChild(wrapper);
+                        }
+                        // Duck finish animation
+                        ducks[i].classList.add('duck-finished');
+                    }
                 }
-            }
-            // Remove winner from wheel
-            const idx = labels.indexOf(winnerName);
-            if (idx !== -1) {
-                labels.splice(idx, 1);
-                slices = labels.length;
-                drawWheel(currentAngle);
-            }
-            drafted.push(winnerName);
-        }
-        winnerImgContainer.innerHTML = '';
-        closeWinnerBtn.style.display = 'none';
-        resultDiv.textContent = '';
-        winnerGifOverlay.innerHTML = '';
-        winnerGifOverlay.style.display = 'none';
-    });
-
-        function spinWheel() {
-            if (spinning) return;
-            spinning = true;
-            resultDiv.textContent = '';
-            winnerImgContainer.innerHTML = '';
-            winnerGifOverlay.innerHTML = '';
-            winnerGifOverlay.style.display = 'none';
-            // Randomly select a slice
-            const selected = Math.floor(Math.random() * slices);
-            // Calculate final angle so selected slice lands at top (arrow)
-            const sliceAngle = 2 * Math.PI / slices;
-            const targetAngle = (3 * Math.PI / 2) - (selected * sliceAngle) - (sliceAngle / 2);
-            // Add extra spins for animation
-            const extraSpins = 5;
-            const finalAngle = targetAngle + extraSpins * 2 * Math.PI;
-            const duration = 6000; // ms
-            const start = performance.now();
-            const startAngle = currentAngle;
-
-            function animate(now) {
-                const elapsed = now - start;
-                if (elapsed < duration) {
-                    // Ease out
-                    const progress = elapsed / duration;
-                    const ease = 1 - Math.pow(1 - progress, 3);
-                    currentAngle = startAngle + (finalAngle - startAngle) * ease;
-                    drawWheel(currentAngle);
-                    requestAnimationFrame(animate);
+                if (finished < ducks.length) {
+                    requestAnimationFrame(animateRace);
                 } else {
-                    currentAngle = finalAngle % (2 * Math.PI);
-                    drawWheel(currentAngle);
-                    spinning = false;
-                    const winnerName = labels[selected];
-                    resultDiv.textContent = `RESULT: ${winnerName}`;
-                    resultDiv.style.opacity = '0';
-                    resultDiv.style.transform = 'scale(0.7) rotate(-10deg)';
-                    resultDiv.style.animation = '';
-                    resultDiv.style.color = '#00aaff';
-                    setTimeout(() => {
-                        resultDiv.style.opacity = '1';
-                        resultDiv.style.transform = 'scale(1.3) rotate(0deg)';
-                        resultDiv.style.animation = 'flicker 1.2s linear';
-                        setTimeout(() => {
-                            resultDiv.style.transform = 'scale(1) rotate(0deg)';
-                            resultDiv.style.animation = '';
-                        }, 1200);
-                    }, 100);
-                    // Show winner image with animation
-                    setTimeout(() => {
-                        showWinnerImage(winnerName);
-                    }, 700);
+                    // Show winner sequence, then popup
+                    showWinnerSequence();
                 }
             }
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateRace);
         }
 
-        spinBtn.addEventListener('click', spinWheel);
-        // Winner image animation styles
+        function showWinnerSequence() {
+            let idx = 0;
+            const overlay = document.createElement('div');
+            overlay.id = 'winner-sequence-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.92)';
+            overlay.style.zIndex = '3000';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            document.body.appendChild(overlay);
+
+            function showNext() {
+                overlay.innerHTML = '';
+                if (idx >= finishedOrder.length) {
+                    overlay.remove();
+                    showFinalOrderPopup();
+                    return;
+                }
+                const entry = finishedOrder[idx];
+                const placeNames = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+                const place = placeNames[idx] || `${idx+1}th`;
+                const face = document.createElement('img');
+                face.src = entry.img;
+                face.alt = entry.name;
+                face.style.width = 'min(70vw, 700px)';
+                face.style.height = 'auto';
+                face.style.maxHeight = '70vh';
+                face.style.borderRadius = '40px';
+                face.style.boxShadow = '0 0 80px 20px #000a, 0 16px 80px #222a';
+                face.style.marginBottom = '40px';
+                overlay.appendChild(face);
+                const label = document.createElement('div');
+                label.textContent = `${place}: ${entry.name}`;
+                label.style.fontSize = '3em';
+                label.style.fontWeight = 'bold';
+                label.style.color = '#fff';
+                label.style.textShadow = '0 2px 16px #000a';
+                overlay.appendChild(label);
+                idx++;
+                setTimeout(showNext, 2500);
+            }
+            showNext();
+        }
+
+        function showFinalOrderPopup() {
+            const popup = document.getElementById('race-popup');
+            const list = document.getElementById('final-order-list');
+            list.innerHTML = '';
+            finishedOrder.forEach((entry, idx) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '18px';
+                row.innerHTML = `<span style="font-weight:bold;font-size:1.2em;width:32px;">${idx + 1}.</span>
+                    <img src="${entry.img}" alt="${entry.name}" style="width:60px;height:60px;object-fit:cover;border-radius:14px;box-shadow:0 0 10px #000a;">
+                    <span style="font-size:1.2em;">${entry.name}</span>`;
+                list.appendChild(row);
+            });
+            // Add close X button
+            if (!document.getElementById('close-x-popup')) {
+                const closeX = document.createElement('button');
+                closeX.id = 'close-x-popup';
+                closeX.innerHTML = '&times;';
+                closeX.style.position = 'absolute';
+                closeX.style.top = '18px';
+                closeX.style.right = '38px';
+                closeX.style.fontSize = '2.5em';
+                closeX.style.background = 'rgba(0,0,0,0.1)';
+                closeX.style.color = '#333';
+                closeX.style.border = 'none';
+                closeX.style.borderRadius = '50%';
+                closeX.style.width = '48px';
+                closeX.style.height = '48px';
+                closeX.style.cursor = 'pointer';
+                closeX.style.zIndex = '10';
+                closeX.onclick = () => { popup.style.display = 'none'; };
+                popup.appendChild(closeX);
+            }
+            popup.style.display = 'flex';
+        }
+
+        document.getElementById('startRaceBtn').addEventListener('click', startDuckRace);
+        document.getElementById('close-popup').addEventListener('click', () => {
+            document.getElementById('race-popup').style.display = 'none';
+        });
+    </script>
     </script>
     <style>
-        #winner-img-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+        .race-track-container {
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .race-track {
+            position: relative;
+            width: 900px;
+            height: 650px;
+            background: url('water.png') center center / cover no-repeat;
+            border-radius: 40px;
+            box-shadow: 0 0 40px #0003;
+            overflow: hidden;
+        }
+        .finish-line {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 12px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                #fff 0px, #fff 12px,
+                #222 12px, #222 24px
+            );
+            border-left: 4px solid #e74c3c;
+            z-index: 20;
+        }
+        .duck {
+            position: absolute;
+            width: 120px;
+            height: 54px;
+            transition: left 0.2s;
+            z-index: 10;
+        }
+        .duck-body {
+            position: relative;
+            width: 120px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+        }
+        .duck-img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 120px;
+            height: 54px;
+            object-fit: contain;
+            z-index: 1;
+        }
+        .duck-face {
+            position: absolute;
+            left: 18px;
+            top: 2px;
+            width: 38px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #000a;
+            border: 2px solid #fff;
+            z-index: 2;
+        }
+        .duck-label {
+            position: absolute;
+            left: 0;
+            top: 56px;
+            width: 120px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #222;
+            text-shadow: 0 2px 8px #fff8;
+        }
+        .duck-finished {
+            filter: drop-shadow(0 0 20px #ffd700) brightness(1.2);
+            opacity: 0.7;
+        }
+        #startRaceBtn {
+            margin-top: 30px;
+            padding: 10px 30px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            border: none;
+            background: #3498db;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #startRaceBtn:hover {
+            background: #217dbb;
+        }
+        .slide-in-draft {
             animation: slideInDraft 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
         }
         @keyframes slideInDraft {
@@ -390,117 +392,17 @@
             70% { opacity: 1; transform: translateY(10px) scale(1.1) rotate(5deg); }
             100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
         }
-        #winner-img-container {
-    z-index: 1000;
-    pointer-events: none;
-        }
-        #winner-gif-overlay {
-            background: transparent;
-            opacity: 1;
-            transition: opacity 0.7s;
-        }
-        .winner-img {
-            width: 80vw;
-            max-width: 900px;
-            height: auto;
-            max-height: 80vh;
-            border-radius: 40px;
-            box-shadow: 0 0 80px 20px #000a, 0 16px 80px #222a;
-            opacity: 0;
-            position: relative;
-        }
-        /* Explode In */
-        .explode-in {
-            animation: explodeIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes explodeIn {
-            0% { opacity: 0; transform: scale(0.1) rotate(-180deg); filter: blur(20px); }
-            60% { opacity: 1; transform: scale(1.2) rotate(10deg); filter: blur(0); }
-            80% { transform: scale(0.95) rotate(-5deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
-        }
-        /* Slide In Left */
-        .slide-in-left {
-            animation: slideInLeft 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes slideInLeft {
-            0% { opacity: 0; transform: translateX(-400px) scale(0.7) rotate(-20deg); }
-            70% { opacity: 1; transform: translateX(30px) scale(1.1) rotate(5deg); }
-            100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
-        }
-        /* Slide In Right */
-        .slide-in-right {
-            animation: slideInRight 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes slideInRight {
-            0% { opacity: 0; transform: translateX(400px) scale(0.7) rotate(20deg); }
-            70% { opacity: 1; transform: translateX(-30px) scale(1.1) rotate(-5deg); }
-            100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
-        }
-        /* Spin In */
-        .spin-in {
-            animation: spinIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes spinIn {
-            0% { opacity: 0; transform: scale(0.1) rotate(-720deg); }
-            70% { opacity: 1; transform: scale(1.2) rotate(30deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
-        }
-        /* Bounce In */
-        .bounce-in {
-            animation: bounceIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.1) translateY(-200px); }
-            60% { opacity: 1; transform: scale(1.2) translateY(30px); }
-            80% { transform: scale(0.95) translateY(-10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        /* Fade In */
-        .fade-in {
-            animation: fadeIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; filter: blur(20px); }
-            60% { opacity: 1; filter: blur(0); }
-            100% { opacity: 1; }
-        }
-        /* Zoom In */
-        .zoom-in {
-            animation: zoomIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes zoomIn {
-            0% { opacity: 0; transform: scale(0.1); }
-            70% { opacity: 1; transform: scale(1.2); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        /* Flip In */
-        .flip-in {
-            animation: flipIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes flipIn {
-            0% { opacity: 0; transform: rotateY(90deg) scale(0.1); }
-            70% { opacity: 1; transform: rotateY(-10deg) scale(1.2); }
-            100% { opacity: 1; transform: rotateY(0deg) scale(1); }
-        }
-        /* Pop In */
-        .pop-in {
-            animation: popIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.1); }
-            60% { opacity: 1; transform: scale(1.3); }
-            80% { transform: scale(0.95); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        /* Rotate In */
-        .rotate-in {
-            animation: rotateIn 1.2s cubic-bezier(.68,-0.55,.27,1.55) forwards;
-        }
-        @keyframes rotateIn {
-            0% { opacity: 0; transform: rotate(-360deg) scale(0.1); }
-            70% { opacity: 1; transform: rotate(20deg) scale(1.2); }
-            100% { opacity: 1; transform: rotate(0deg) scale(1); }
+        #race-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </body>

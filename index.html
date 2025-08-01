@@ -145,7 +145,7 @@
                     // Use assigned speed for each duck
                     const speed = duckSpeeds[i];
                     // Linear progress for each duck
-                    let progress = Math.min(1, (elapsed * speed) / 30000);
+                    let progress = Math.min(1, (elapsed * speed) / 15000);
                     ducks[i].style.left = `${progress * trackWidth}px`;
                     if (progress >= 1 && !duckFinishTimes[i]) {
                         duckFinishTimes[i] = elapsed;
